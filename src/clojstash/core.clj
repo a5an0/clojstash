@@ -1,15 +1,11 @@
 (ns clojstash.core
   (:gen-class)
-  (:use [amazonica.aws.dynamodbv2]))
+  (:use [amazonica.aws.dynamodbv2])
+  (:import (org.bouncycastle.crypto.params KeyParameter)
+           (org.bouncycastle.crypto.modes SICBlockCipher)
+           (org.bouncycastle.crypto.engines AESEngine))
+  (:require [base64-clj.core :as base64]))
 
-;;(import javax.crypto.Cipher)
-;;(import org.bouncycastle.jce.provider.BouncyCastleProvider)
-;;(import java.security.Security)
-
-(import '(org.bouncycastle.crypto.params KeyParameter))
-(import '(org.bouncycastle.crypto.modes SICBlockCipher))
-(import '(org.bouncycastle.crypto.engines AESEngine))
-(require '[base64-clj.core :as base64])
 
 (defn getSicCipher
   "Return an AES cipher in SIC (CTR) mode. Configure using key, and set toEncrypt"
@@ -58,6 +54,4 @@
 (defn -main
   "I don't do a whole lot."
   []
-  ; Register Bouncy Castle as a crypto provider
-;  (. Security addProvider (new BouncyCastleProvider))
   (printSecrets :region "us-east-1" :table "credential-store"))
