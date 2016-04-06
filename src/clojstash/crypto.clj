@@ -1,8 +1,7 @@
 (ns clojstash.crypto
-  (:import (org.bouncycastle.crypto.params KeyParameter)
+  (:import (org.bouncycastle.crypto.params KeyParameter ParametersWithIV)
            (org.bouncycastle.crypto.modes SICBlockCipher)
-           (org.bouncycastle.crypto.engines AESEngine)
-           (java.nio ByteBuffer))
+           (org.bouncycastle.crypto.engines AESEngine))
   (:require [base64-clj.core :as base64])
   )
 
@@ -11,8 +10,9 @@
   [key toEncrypt?]
   ;; TODO: make sure key is 32 bytes long
   (let [engine (new AESEngine)]
-    (. engine init toEncrypt? (new KeyParameter key))
-    (new SICBlockCipher engine)))
+    (doto (new SICBlockCipher engine)
+      (.init toEncrypt? (new ParametersWithIV (new KeyParameter key) (byte-array 16))))))
+    
 
 (defn encrypt
   "Encrypt plaintext with key using AWS in SIC (CTR) mode. Returns B64-encoded ciphertext string"
@@ -27,3 +27,12 @@
 (defn hmac
   [value key]
   '("yep"))
+
+(defn decrypt
+  [ciphertext key]
+  (let [cipher (getSicCipher key false)
+        cipherBytes (base64/decode-bytes (.getBytes ciphertext))
+        cipherLen (count cipherBytes)
+        plainBytes (byte-array cipherLen)]
+    (. cipher processBytes cipherBytes 0 cipherLen plainBytes 0)
+    (String. plainBytes)))
